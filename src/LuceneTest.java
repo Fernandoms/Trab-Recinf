@@ -1,29 +1,18 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopScoreDocCollector;
-import org.apache.lucene.search.Weight;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
 public class LuceneTest {
-
-	private static final String[] type = { "RN", "TI", "MJ", "MN", "AB/EX" };
 
 	public static void main(String[] args) {
 		try {
@@ -38,12 +27,9 @@ public class LuceneTest {
 
 			IndexWriter w = new IndexWriter(index, config);
 
-			readFile(w, "/home/fernandoms/Downloads/cfc/cf74");
-			readFile(w, "/home/fernandoms/Downloads/cfc/cf75");
-			readFile(w, "/home/fernandoms/Downloads/cfc/cf76");
-			readFile(w, "/home/fernandoms/Downloads/cfc/cf77");
-			readFile(w, "/home/fernandoms/Downloads/cfc/cf78");
-			readFile(w, "/home/fernandoms/Downloads/cfc/cf79");
+			DocumentIndexer indexer = new DocumentIndexer(w);
+
+			w = indexer.getIndexWriter();
 			w.close();
 
 			// Text to search
@@ -51,7 +37,8 @@ public class LuceneTest {
 
 			// The \"title\" arg specifies the default field to use when no
 			// field is explicitly specified in the query
-			Query q = new QueryParser("TI", analyzer).parse(querystr);			
+			Query q = new MultiFieldQueryParser(DocumentIndexer.DOCUMENT_INFO_TYPE, analyzer).parse(querystr);
+			// Query q = new QueryParser("TI", analyzer).parse(querystr);
 
 			// Searching code
 			int hitsPerPage = 1500;
@@ -77,85 +64,4 @@ public class LuceneTest {
 		}
 	}
 
-	private static void addDoc(IndexWriter w, String[] document) throws IOException {
-
-		Document doc = new Document();
-		// A text field will be tokenized
-		for (int j = 0; j < 5; j++) {
-			if (document[j] != null) {
-				doc.add(new TextField(type[j], document[j], Field.Store.YES));
-				// TODO: setBoost no TextField
-			}
-		}
-		w.addDocument(doc);
-	}
-
-	private static void readFile(IndexWriter w, String fileName) {
-		BufferedReader br = null;
-		List<String[]> docs = new ArrayList<>();
-		FileReader fr = null;
-		String[] doc;
-		try {
-			fr = new FileReader(fileName);
-			br = new BufferedReader(fr);
-			String sCurrentLine;
-			doc = new String[5];
-			int save = -1;
-			while ((sCurrentLine = br.readLine()) != null) {
-				save = isSaveFields(sCurrentLine, save);
-				if (save != -1) {
-					if (sCurrentLine.length() > 2 && !sCurrentLine.startsWith(" ")) {
-						if (save == 0) {
-							docs.add(doc);
-							doc = new String[5];
-						}
-						doc[save] = sCurrentLine.substring(2, sCurrentLine.length());
-					} else {
-						doc[save] = doc[save] + sCurrentLine.replace("  ", "");
-					}
-				}
-			}
-			docs.add(doc);
-			for (String[] index : docs) {
-				/*for (int j = 0; j < 5; j++) {
-					if (index[j] != null) {
-						System.out.print(type[j]);
-						System.out.println(index[j]);
-					}
-				}*/
-				addDoc(w, index);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private static int isSaveFields(String line, int isToSave) {
-		if (line != null && line.length() > 2) {
-			String code = line.substring(0, 2);
-			switch (code) {
-			case "RN":
-				return 0;
-			case "TI":
-				return 1;
-			case "MJ":
-				return 2;
-			case "MN":
-				return 3;
-			case "AB":
-			case "EX":
-				return 4;
-			case "PN":
-			case "AN":
-			case "AU":
-			case "SO":
-			case "RF":
-			case "CT":
-				return -1;
-			default:
-				return isToSave;
-			}
-		}
-		return -1;
-	}
 }
