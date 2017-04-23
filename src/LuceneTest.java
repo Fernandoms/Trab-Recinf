@@ -53,9 +53,7 @@ public class LuceneTest {
 					while ((sCurrentLine = br.readLine()).startsWith("   "))
 						q.query += sCurrentLine.substring(4, sCurrentLine.length()).trim();
 				
-				}else if(sCurrentLine.startsWith("NR")){
-					continue;
-				}else if(sCurrentLine.startsWith("RD")){
+				} else if(sCurrentLine.startsWith("RD")){
 					String[] split = sCurrentLine.substring(2, sCurrentLine.length()).trim().split("\\s+");
 					for(int i = 0; i < split.length; i+=2)
 						q.relevant_docs.add(Integer.parseInt(split[i]));
