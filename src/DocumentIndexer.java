@@ -15,12 +15,14 @@ public class DocumentIndexer {
 	public DocumentIndexer(IndexWriter indexWriter) {
 		super();
 		this.indexWriter = indexWriter;
-		readFile(indexWriter, "/home/fernandoms/Downloads/cfc/cf74");
-		readFile(indexWriter, "/home/fernandoms/Downloads/cfc/cf75");
-		readFile(indexWriter, "/home/fernandoms/Downloads/cfc/cf76");
-		readFile(indexWriter, "/home/fernandoms/Downloads/cfc/cf77");
-		readFile(indexWriter, "/home/fernandoms/Downloads/cfc/cf78");
-		readFile(indexWriter, "/home/fernandoms/Downloads/cfc/cf79");
+		String path_yan = "./cfc/";
+		//String path_fernandinho= "/home/fernandoms/Downloads/cfc/";
+		readFile(indexWriter, path_yan + "cf74");
+		readFile(indexWriter, path_yan + "cf75");
+		readFile(indexWriter, path_yan + "cf76");
+		readFile(indexWriter, path_yan + "cf77");
+		readFile(indexWriter, path_yan + "cf78");
+		readFile(indexWriter, path_yan + "cf79");
 	}
 
 	public static final String[] DOCUMENT_INFO_TYPE = { "RN", "TI", "MJ", "MN", "AB/EX" };
