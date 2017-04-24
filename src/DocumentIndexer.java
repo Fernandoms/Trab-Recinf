@@ -11,12 +11,13 @@ import org.apache.lucene.index.IndexWriter;
 
 public class DocumentIndexer {
 	private IndexWriter indexWriter;
+	private static Filters f;
 
 	public DocumentIndexer(IndexWriter indexWriter) {
 		super();
 		this.indexWriter = indexWriter;
 		String path_yan = "./cfc/";
-		//String path_fernandinho= "/home/fernandoms/Downloads/cfc/";
+		// String path_fernandinho= "/home/fernandoms/Downloads/cfc/";
 		readFile(indexWriter, path_yan + "cf74");
 		readFile(indexWriter, path_yan + "cf75");
 		readFile(indexWriter, path_yan + "cf76");
@@ -95,12 +96,12 @@ public class DocumentIndexer {
 	}
 
 	private static void addDoc(IndexWriter w, String[] document) throws IOException {
-
+		f = new Filters();
 		Document doc = new Document();
 		// A text field will be tokenized
 		for (int j = 0; j < 5; j++) {
 			if (document[j] != null) {
-				doc.add(new TextField(DOCUMENT_INFO_TYPE[j], document[j], Field.Store.YES));
+				doc.add(new TextField(DOCUMENT_INFO_TYPE[j], f.tokenizeStopStem(document[j]), Field.Store.YES));
 				// TODO: setBoost no TextField
 			}
 		}
