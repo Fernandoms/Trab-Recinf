@@ -1,8 +1,12 @@
 import java.io.BufferedReader;
+import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
+import java.util.Formatter;
 
 import javax.xml.stream.events.StartDocument;
 
@@ -32,7 +36,7 @@ public class LuceneTest {
 		}
 	}
 	
-	public static List<QueryCFC> readQueryFile() {
+	public static List<QueryCFC> readQueryFile() {		
 		BufferedReader br = null;
 		List<QueryCFC> queries = new ArrayList<>();
 		FileReader fr = null;
@@ -83,13 +87,22 @@ public class LuceneTest {
 			IndexWriter w = new IndexWriter(index, config);
 
 			DocumentIndexer indexer = new DocumentIndexer(w);
+			
+			String csvFile = "./output_" + ".csv";
+			CSVUtils CSVUtils = new CSVUtils();
+			FileWriter writer = new FileWriter(csvFile);
 
 			w = indexer.getIndexWriter();
 			w.close();
 			
 			List<QueryCFC> queries = readQueryFile();
 			
+			CSVUtils.writeLine(writer, Arrays.asList("Query", "Precision", "Recall", "F-Measure"), ';');
+			
 			for(QueryCFC qcfc : queries){
+				if(qcfc.query_number > 15)
+					continue;
+				
 				String querystr = qcfc.query;
 				System.out.println(querystr);
 				
@@ -116,14 +129,20 @@ public class LuceneTest {
 					}
 				}
 				
-				double precision = (double) (relevant_hits / qcfc.relevant_docs.size());
-				double recall = (double) relevant_hits / hits.length;
+				double precision = (double) relevant_hits / hits.length;
+				double recall = (double) relevant_hits / qcfc.relevant_docs.size();
+				double fmeasure = (double) relevant_hits / hits.length;
+				DecimalFormat formatter = new DecimalFormat("#.####");
+				
+				CSVUtils.writeLine(writer, Arrays.asList(String.format("%d",qcfc.query_number), formatter.format(precision), formatter.format(recall), formatter.format(fmeasure)), ';');
 				
 				System.out.println("Query: " + qcfc.query_number + " - Precision: " + precision + " - Recall: " + recall);
 				// reader can only be closed when there is no need to access the
 				// documents any more
 				reader.close();
 			}
+			writer.flush();
+	        writer.close();
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
