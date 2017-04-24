@@ -1,7 +1,10 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -19,7 +22,6 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
 public class LuceneTest {
-	private Filters f;
 
 	public static class QueryCFC {
 		public int query_number;
@@ -32,6 +34,7 @@ public class LuceneTest {
 	}
 
 	public static List<QueryCFC> readQueryFile() {
+
 		BufferedReader br = null;
 		List<QueryCFC> queries = new ArrayList<>();
 		FileReader fr = null;
@@ -83,12 +86,22 @@ public class LuceneTest {
 
 			DocumentIndexer indexer = new DocumentIndexer(w);
 
+			String csvFile = "./output_" + ".csv";
+			CSVUtils CSVUtils = new CSVUtils();
+			FileWriter writer = new FileWriter(csvFile);
+
 			w = indexer.getIndexWriter();
 			w.close();
 
 			List<QueryCFC> queries = readQueryFile();
 
+			CSVUtils.writeLine(writer, Arrays.asList("Query", "Precision", "Recall", "F-Measure", "Total Results"),
+					';');
+
 			for (QueryCFC qcfc : queries) {
+				/*
+				 * if (qcfc.query_number > 15) continue;
+				 */
 				String querystr = qcfc.query;
 				System.out.println(querystr);
 
@@ -106,7 +119,7 @@ public class LuceneTest {
 				TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
 				searcher.search(q, collector);
 				ScoreDoc[] hits = collector.topDocs().scoreDocs;
-
+				
 				// Code to display the results of search
 				double relevant_hits = 0;
 
@@ -117,15 +130,25 @@ public class LuceneTest {
 					}
 				}
 
-				double precision = (double) (relevant_hits / qcfc.relevant_docs.size());
-				double recall = (double) relevant_hits / hits.length;
+				double precision = (double) relevant_hits / hits.length;
+				double recall = (double) relevant_hits / qcfc.relevant_docs.size();
+				double fmeasure = (double) relevant_hits / hits.length;
+				DecimalFormat formatter = new DecimalFormat("#.####");
 
-				System.out.println("Query: " + qcfc.query_number + " - Precision: " + precision + " - Recall: " + recall
-						+ " Total Result: " + hits.length);
+				CSVUtils.writeLine(writer,
+						Arrays.asList(String.format("%d", qcfc.query_number), formatter.format(precision),
+								formatter.format(recall), formatter.format(fmeasure), String.valueOf(hits.length)),
+						';');
+
+				System.out
+						.println("Query: " + qcfc.query_number + " - Precision: " + precision + " - Recall: " + recall);
+
 				// reader can only be closed when there is no need to access the
 				// documents any more
 				reader.close();
 			}
+			writer.flush();
+			writer.close();
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
