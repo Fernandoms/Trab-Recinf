@@ -1,11 +1,7 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -25,55 +21,6 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
 public class LuceneTest {
-
-	public static class QueryCFC {
-		public int query_number;
-		public String query;
-		public List<Integer> relevant_docs;
-
-		public QueryCFC() {
-			this.relevant_docs = new ArrayList<>();
-		}
-	}
-
-	public static List<QueryCFC> readQueryFile() {
-
-		BufferedReader br = null;
-		List<QueryCFC> queries = new ArrayList<>();
-		FileReader fr = null;
-		try {
-			fr = new FileReader("./cfc/cfquery");
-			br = new BufferedReader(fr);
-			String sCurrentLine;
-			QueryCFC q = new QueryCFC();
-			while ((sCurrentLine = br.readLine()) != null) {
-				if (sCurrentLine.startsWith("QN")) {
-					if (q.query_number > 0)
-						queries.add(q);
-
-					q = new QueryCFC();
-					q.query_number = Integer.parseInt(sCurrentLine.substring(3, sCurrentLine.length()).trim());
-				} else if (sCurrentLine.startsWith("QU")) {
-					q.query = sCurrentLine.substring(3, sCurrentLine.length()).trim();
-					while ((sCurrentLine = br.readLine()).startsWith("   "))
-						q.query += sCurrentLine.substring(4, sCurrentLine.length()).trim();
-
-				} else if (sCurrentLine.startsWith("RD")) {
-					String[] split = sCurrentLine.substring(2, sCurrentLine.length()).trim().split("\\s+");
-					for (int i = 0; i < split.length; i += 2)
-						q.relevant_docs.add(Integer.parseInt(split[i]));
-				} else if (!sCurrentLine.trim().isEmpty()) {
-					String[] split = sCurrentLine.trim().split("\\s+");
-					for (int i = 0; i < split.length; i += 2)
-						q.relevant_docs.add(Integer.parseInt(split[i]));
-				}
-			}
-			queries.add(q);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return queries;
-	}
 
 	public static void main(String[] args) {
 		try {
@@ -100,7 +47,7 @@ public class LuceneTest {
 			w = indexer.getIndexWriter();
 			w.close();
 
-			List<QueryCFC> queries = readQueryFile();
+			List<QueryCFC> queries = DocumentIndexer.readQueryFile();
 
 			CSVUtils.writeLine(writer, Arrays.asList("Query", "Precision", "Recall", "F-Measure", "Total Results"),
 					';');
@@ -110,6 +57,9 @@ public class LuceneTest {
 				 * if (qcfc.query_number > 15) continue;
 				 */
 				String querystr = qcfc.query;
+				if(querystr.contains("What is the incidence")){
+					System.out.println("Tseste");
+				}
 				System.out.println(querystr);
 
 				// The \"title\" arg specifies the default field to use when no
@@ -118,7 +68,7 @@ public class LuceneTest {
 						.parse(f.tokenizeStopStem(querystr));
 
 				// Searching code
-				int hitsPerPage = 1000;
+				int hitsPerPage = 200;
 				IndexReader reader = DirectoryReader.open(index);
 				IndexSearcher searcher = new IndexSearcher(reader);
 				searcher.setSimilarity(new BM25Similarity());
@@ -131,20 +81,20 @@ public class LuceneTest {
 
 				for (int i = 0; i < hits.length; ++i) {
 					for (int relevant_doc : qcfc.relevant_docs) {
-						if (hits[i].doc == relevant_doc)
+						if (searcher.doc(hits[i].doc).get("RN").equals(String.format("%05d", relevant_doc)))
 							relevant_hits++;
 					}
 				}
 
 				double precision = (double) relevant_hits / hits.length;
 				double recall = (double) relevant_hits / qcfc.relevant_docs.size();
-				double fmeasure = (double) 1 / (1/precision + 1/recall);
+				double fmeasure = (double) 1 / (1 / precision + 1 / recall);
 				DecimalFormat formatter = new DecimalFormat("#.####");
 
 				CSVUtils.writeLine(writer,
-						Arrays.asList(String.format("%d", qcfc.query_number), formatter.format(precision).replace('.', ','),
-								formatter.format(recall).replace('.', ','), formatter.format(fmeasure).replace('.', ','), 
-								String.valueOf(hits.length)), ';');
+						Arrays.asList(String.format("%d", qcfc.query_number), formatter.format(precision),
+								formatter.format(recall), formatter.format(fmeasure), String.valueOf(hits.length)),
+						';');
 
 				System.out
 						.println("Query: " + qcfc.query_number + " - Precision: " + precision + " - Recall: " + recall);
@@ -153,8 +103,10 @@ public class LuceneTest {
 				// documents any more
 				reader.close();
 			}
-			CSVUtils.writeLine(writer,Arrays.asList("AVG", "=AVERAGE(B2:B99)", "=AVERAGE(C2:C99)", "=AVERAGE(D2:D99)"),';');
-			CSVUtils.writeLine(writer,Arrays.asList("STDEV", "=STDEV(B2:B99)", "=STDEV(C2:C99)", "=STDEV(D2:D99)"),';');
+			CSVUtils.writeLine(writer,
+					Arrays.asList("AVG", "=AVERAGE(B2:B101)", "=AVERAGE(C2:C101)", "=AVERAGE(D2:D101)"), ';');
+			CSVUtils.writeLine(writer, Arrays.asList("STDEV", "=STDEV(B2:B101)", "=STDEV(C2:C101)", "=STDEV(D2:D101)"),
+					';');
 			writer.flush();
 			writer.close();
 		} catch (Exception e) {

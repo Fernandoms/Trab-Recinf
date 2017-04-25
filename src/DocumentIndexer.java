@@ -8,9 +8,9 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.search.BoostQuery;
 
 public class DocumentIndexer {
+	
 	private IndexWriter indexWriter;
 	private static Filters f;
 
@@ -95,6 +95,45 @@ public class DocumentIndexer {
 		}
 		return -1;
 	}
+	
+	public static List<QueryCFC> readQueryFile() {
+
+		BufferedReader br = null;
+		List<QueryCFC> queries = new ArrayList<>();
+		FileReader fr = null;
+		try {
+			fr = new FileReader("./cfc/cfquery");
+			br = new BufferedReader(fr);
+			String sCurrentLine;
+			QueryCFC q = new QueryCFC();
+			while ((sCurrentLine = br.readLine()) != null) {
+				if (sCurrentLine.startsWith("QN")) {
+					if (q.query_number > 0)
+						queries.add(q);
+
+					q = new QueryCFC();
+					q.query_number = Integer.parseInt(sCurrentLine.substring(3, sCurrentLine.length()).trim());
+				} else if (sCurrentLine.startsWith("QU")) {
+					q.query = sCurrentLine.substring(3, sCurrentLine.length());
+					while ((sCurrentLine = br.readLine()).startsWith("   "))
+						q.query += sCurrentLine.substring(4, sCurrentLine.length()).trim();
+
+				} else if (sCurrentLine.startsWith("RD")) {
+					String[] split = sCurrentLine.substring(2, sCurrentLine.length()).trim().split("\\s+");
+					for (int i = 0; i < split.length; i += 2)
+						q.relevant_docs.add(Integer.parseInt(split[i]));
+				} else if (!sCurrentLine.trim().isEmpty()) {
+					String[] split = sCurrentLine.trim().split("\\s+");
+					for (int i = 0; i < split.length; i += 2)
+						q.relevant_docs.add(Integer.parseInt(split[i]));
+				}
+			}
+			queries.add(q);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return queries;
+	}
 
 	private static void addDoc(IndexWriter w, String[] document) throws IOException {
 		f = new Filters();
@@ -105,13 +144,13 @@ public class DocumentIndexer {
 				TextField tf = new TextField(DOCUMENT_INFO_TYPE[j], f.tokenizeStopStem(document[j]), Field.Store.YES);
 				switch (j) {
 				case 2:
-					tf.setBoost(.5f);
+					tf.setBoost(.1f);
 					break;
 				case 3:
-					tf.setBoost(.3f);
+					tf.setBoost(.0f);
 					break;
 				case 4:
-					tf.setBoost(.6f);
+					tf.setBoost(.8f);
 					break;
 				default:
 					break;

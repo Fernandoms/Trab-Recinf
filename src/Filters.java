@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.lucene.analysis.CharArraySet;
+import org.apache.lucene.analysis.LowerCaseFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.StopFilter;
 import org.apache.lucene.analysis.en.PorterStemFilter;
@@ -37,6 +38,7 @@ public class Filters {
 	public String tokenizeStopStem(String input) throws IOException {
 		stk.setReader(new StringReader(input));
 		TokenStream tokenStream = stk;
+		tokenStream = new LowerCaseFilter(tokenStream);
 		tokenStream = new StopFilter(tokenStream, CharArraySet.copy(s));
 		tokenStream = new PorterStemFilter(tokenStream);
 		tokenStream.reset();

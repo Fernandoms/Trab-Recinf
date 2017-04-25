@@ -85,6 +85,7 @@ cause
 causes
 certain
 certainly
+cf
 changes
 clearly
 co
@@ -109,6 +110,7 @@ despite
 did
 didn't
 different
+distinguish
 do
 does
 doesn't
@@ -327,6 +329,8 @@ overall
 own
 particular
 particularly
+patients
+patient
 per
 perhaps
 placed
