@@ -141,7 +141,7 @@ public class DocumentIndexer {
 		// A text field will be tokenized
 		for (int j = 0; j < 5; j++) {
 			if (document[j] != null) {
-				TextField tf = new TextField(DOCUMENT_INFO_TYPE[j], f.tokenizeStopStem(document[j]), Field.Store.YES);
+				TextField tf = new TextField(DOCUMENT_INFO_TYPE[j], f.currentTokenizerStringFunction(document[j]), Field.Store.YES);
 				switch (j) {
 				case 2:
 					tf.setBoost(.1f);

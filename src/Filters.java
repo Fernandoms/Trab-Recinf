@@ -16,10 +16,10 @@ import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.util.AttributeFactory;
 
 public class Filters {
-
 	private Set<String> s;
 	StandardTokenizer stk;
-
+	public static int currentFunction;
+	
 	public Filters() {
 		s = new HashSet<String>();
 		AttributeFactory factory = AttributeFactory.DEFAULT_ATTRIBUTE_FACTORY;
@@ -32,6 +32,32 @@ public class Filters {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
+		}	
+	}
+
+	public Filters(int currentFunction) {
+		Filters.currentFunction = currentFunction;
+		
+		s = new HashSet<String>();
+		AttributeFactory factory = AttributeFactory.DEFAULT_ATTRIBUTE_FACTORY;
+		stk = new StandardTokenizer(factory);
+		try {
+			BufferedReader br = new BufferedReader(new FileReader("./StopWords/stopword.txt"));
+			while (br.ready())
+				s.add(br.readLine());
+			br.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+		}	
+	}
+	
+	public String currentTokenizerStringFunction(String input) throws IOException{
+		switch(currentFunction){
+		case 1:
+			return tokenizeStopStem(input);
+		default:
+			throw new IOException("Invalid args");
 		}
 	}
 
