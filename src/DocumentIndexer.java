@@ -144,10 +144,10 @@ public class DocumentIndexer {
 				TextField tf = new TextField(DOCUMENT_INFO_TYPE[j], f.currentTokenizerStringFunction(document[j]), Field.Store.YES);
 				switch (j) {
 				case 2:
-					tf.setBoost(.1f);
+					tf.setBoost(.4f);
 					break;
 				case 3:
-					tf.setBoost(.0f);
+					tf.setBoost(.3f);
 					break;
 				case 4:
 					tf.setBoost(.8f);
@@ -156,7 +156,6 @@ public class DocumentIndexer {
 					break;
 				}
 				doc.add(tf);
-				// TODO: setBoost no TextField
 			}
 		}
 		w.addDocument(doc);
