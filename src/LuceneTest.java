@@ -33,7 +33,8 @@ public class LuceneTest {
 			List<String> instances = new ArrayList<>();
 			List<String> validInstances = new ArrayList<>();
 			
-			validInstances = Arrays.asList("customstopwords_porter");
+			validInstances = Arrays.asList("clean", "porter", "similarity_clean", "similarity_porter", 
+					"top_10_similarity_porter", "top_50_similarity_porter", "top_100_similarity_porter", "top_150_similarity_porter");
 			
 			if(dev){
 				instances = validInstances;
@@ -53,10 +54,27 @@ public class LuceneTest {
 			}
 			
 			for(String instance : instances){
+				System.out.println("Running instance " + instance);
 				int currentFunction;
-				if(instance.equals("customstopwords_porter")){
+				if(instance.equals("clean")){
 					currentFunction = 1;
-				} else {
+				} else if(instance.equals("porter")) {
+					currentFunction = 2;
+				} else if(instance.equals("similarity_clean")){
+					currentFunction = 3;
+				} else if(instance.equals("similarity_porter")){
+					currentFunction = 4;
+				} else if(instance.equals("top_10_similarity_porter")){
+					currentFunction = 5;
+				} else if(instance.equals("top_50_similarity_porter")){
+					currentFunction = 6;
+				} else if(instance.equals("top_100_similarity_porter")){
+					currentFunction = 7;
+				} else if(instance.equals("top_150_similarity_porter")){
+					currentFunction = 8;
+				}
+				
+				else {
 					currentFunction = -1;
 				}
 				DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
@@ -74,7 +92,7 @@ public class LuceneTest {
 				IndexWriter w = new IndexWriter(index, config);
 
 				DocumentIndexer indexer = new DocumentIndexer(w);
-
+				
 				String csvFile = "./output_" + instance + "_" + dateFormat.format(date) + ".csv";
 				CSVUtils CSVUtils = new CSVUtils();
 				FileWriter writer = new FileWriter(csvFile);
@@ -92,10 +110,10 @@ public class LuceneTest {
 					 * if (qcfc.query_number > 15) continue;
 					 */
 					String querystr = qcfc.query;
-					if(querystr.contains("What is the incidence")){
-						System.out.println("Tseste");
-					}
-					System.out.println(querystr);
+//					if(querystr.contains("What is the incidence")){
+//						System.out.println("Tseste");
+//					}
+					//System.out.println(querystr);
 
 					// The \"title\" arg specifies the default field to use when no
 					// field is explicitly specified in the query
@@ -104,9 +122,19 @@ public class LuceneTest {
 
 					// Searching code
 					int hitsPerPage = 200;
+					if(currentFunction == 5)
+						hitsPerPage = 10;
+					else if(currentFunction == 6)
+						hitsPerPage = 50;
+					else if(currentFunction == 7)
+						hitsPerPage = 100;
+					else if(currentFunction == 8)
+						hitsPerPage = 150;
 					IndexReader reader = DirectoryReader.open(index);
 					IndexSearcher searcher = new IndexSearcher(reader);
-					searcher.setSimilarity(new BM25Similarity());
+					if(currentFunction == 3 || currentFunction == 4){
+						searcher.setSimilarity(new BM25Similarity());
+					}
 					TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
 					searcher.search(q, collector);
 					ScoreDoc[] hits = collector.topDocs().scoreDocs;
@@ -135,8 +163,8 @@ public class LuceneTest {
 //									formatter.format(recall), formatter.format(fmeasure), String.valueOf(hits.length)),
 //							';');
 
-					System.out
-							.println("Query: " + qcfc.query_number + " - Precision: " + precision + " - Recall: " + recall);
+//					System.out
+//							.println("Query: " + qcfc.query_number + " - Precision: " + precision + " - Recall: " + recall);
 
 					// reader can only be closed when there is no need to access the
 					// documents any more
