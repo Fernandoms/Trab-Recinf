@@ -8,6 +8,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.search.BoostQuery;
 
 public class DocumentIndexer {
 	private IndexWriter indexWriter;
@@ -101,7 +102,21 @@ public class DocumentIndexer {
 		// A text field will be tokenized
 		for (int j = 0; j < 5; j++) {
 			if (document[j] != null) {
-				doc.add(new TextField(DOCUMENT_INFO_TYPE[j], f.tokenizeStopStem(document[j]), Field.Store.YES));
+				TextField tf = new TextField(DOCUMENT_INFO_TYPE[j], f.tokenizeStopStem(document[j]), Field.Store.YES);
+				switch (j) {
+				case 2:
+					tf.setBoost(.5f);
+					break;
+				case 3:
+					tf.setBoost(.3f);
+					break;
+				case 4:
+					tf.setBoost(.6f);
+					break;
+				default:
+					break;
+				}
+				doc.add(tf);
 				// TODO: setBoost no TextField
 			}
 		}

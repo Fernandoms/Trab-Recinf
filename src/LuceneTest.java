@@ -65,6 +65,7 @@ public class LuceneTest {
 						q.relevant_docs.add(Integer.parseInt(split[i]));
 				}
 			}
+			queries.add(q);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -109,17 +110,16 @@ public class LuceneTest {
 				// field is explicitly specified in the query
 				Query q = new MultiFieldQueryParser(DocumentIndexer.DOCUMENT_INFO_TYPE, analyzer)
 						.parse(f.tokenizeStopStem(querystr));
-				// Query q = new QueryParser("TI", analyzer).parse(querystr);
 
 				// Searching code
-				int hitsPerPage = 1500;
+				int hitsPerPage = 1000;
 				IndexReader reader = DirectoryReader.open(index);
 				IndexSearcher searcher = new IndexSearcher(reader);
 				searcher.setSimilarity(new BM25Similarity());
 				TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
 				searcher.search(q, collector);
 				ScoreDoc[] hits = collector.topDocs().scoreDocs;
-				
+
 				// Code to display the results of search
 				double relevant_hits = 0;
 
