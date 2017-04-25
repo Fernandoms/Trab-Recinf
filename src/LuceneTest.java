@@ -19,6 +19,8 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
+import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
@@ -132,7 +134,9 @@ public class LuceneTest {
 						hitsPerPage = 150;
 					IndexReader reader = DirectoryReader.open(index);
 					IndexSearcher searcher = new IndexSearcher(reader);
-					if(currentFunction == 3 || currentFunction == 4){
+					if(currentFunction < 3){
+						searcher.setSimilarity(new ClassicSimilarity());
+					} else {
 						searcher.setSimilarity(new BM25Similarity());
 					}
 					TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
