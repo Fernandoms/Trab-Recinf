@@ -2,9 +2,12 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -74,6 +77,9 @@ public class LuceneTest {
 
 	public static void main(String[] args) {
 		try {
+			DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH:mm:ss");
+			Date date = new Date();
+
 			// Specify the analyzer for tokenizing text.
 			// The same analyzer should be used for indexing and searching
 			StandardAnalyzer analyzer = new StandardAnalyzer();
@@ -87,7 +93,7 @@ public class LuceneTest {
 
 			DocumentIndexer indexer = new DocumentIndexer(w);
 
-			String csvFile = "./output_" + ".csv";
+			String csvFile = "./output_" + dateFormat.format(date) + ".csv";
 			CSVUtils CSVUtils = new CSVUtils();
 			FileWriter writer = new FileWriter(csvFile);
 
@@ -132,13 +138,13 @@ public class LuceneTest {
 
 				double precision = (double) relevant_hits / hits.length;
 				double recall = (double) relevant_hits / qcfc.relevant_docs.size();
-				double fmeasure = (double) relevant_hits / hits.length;
+				double fmeasure = (double) 1 / (1/precision + 1/recall);
 				DecimalFormat formatter = new DecimalFormat("#.####");
 
 				CSVUtils.writeLine(writer,
-						Arrays.asList(String.format("%d", qcfc.query_number), formatter.format(precision),
-								formatter.format(recall), formatter.format(fmeasure), String.valueOf(hits.length)),
-						';');
+						Arrays.asList(String.format("%d", qcfc.query_number), formatter.format(precision).replace('.', ','),
+								formatter.format(recall).replace('.', ','), formatter.format(fmeasure).replace('.', ','), 
+								String.valueOf(hits.length)), ';');
 
 				System.out
 						.println("Query: " + qcfc.query_number + " - Precision: " + precision + " - Recall: " + recall);
@@ -147,6 +153,8 @@ public class LuceneTest {
 				// documents any more
 				reader.close();
 			}
+			CSVUtils.writeLine(writer,Arrays.asList("AVG", "=AVERAGE(B2:B99)", "=AVERAGE(C2:C99)", "=AVERAGE(D2:D99)"),';');
+			CSVUtils.writeLine(writer,Arrays.asList("STDEV", "=STDEV(B2:B99)", "=STDEV(C2:C99)", "=STDEV(D2:D99)"),';');
 			writer.flush();
 			writer.close();
 		} catch (Exception e) {
