@@ -106,14 +106,7 @@ public class LuceneTest {
 						';');
 
 				for (QueryCFC qcfc : queries) {
-					/*
-					 * if (qcfc.query_number > 15) continue;
-					 */
 					String querystr = qcfc.query;
-//					if(querystr.contains("What is the incidence")){
-//						System.out.println("Tseste");
-//					}
-					//System.out.println(querystr);
 
 					// The \"title\" arg specifies the default field to use when no
 					// field is explicitly specified in the query
@@ -153,20 +146,13 @@ public class LuceneTest {
 
 					double precision = (double) relevant_hits / hits.length;
 					double recall = (double) relevant_hits / qcfc.relevant_docs.size();
-					double fmeasure = (double) 1 / (1 / precision + 1 / recall);
+					double fmeasure = (double) 2 / ((1 / precision) + (1 / recall));
 					DecimalFormat formatter = new DecimalFormat("#.####");
 
 					CSVUtils.writeLine(writer,
 							Arrays.asList(String.format("%d", qcfc.query_number), formatter.format(precision).replace('.', ','),
 									formatter.format(recall).replace('.', ','), formatter.format(fmeasure).replace('.', ','), 
 									String.valueOf(hits.length)), ';');
-//					CSVUtils.writeLine(writer,
-//							Arrays.asList(String.format("%d", qcfc.query_number), formatter.format(precision),
-//									formatter.format(recall), formatter.format(fmeasure), String.valueOf(hits.length)),
-//							';');
-
-//					System.out
-//							.println("Query: " + qcfc.query_number + " - Precision: " + precision + " - Recall: " + recall);
 
 					// reader can only be closed when there is no need to access the
 					// documents any more
